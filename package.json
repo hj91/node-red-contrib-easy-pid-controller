@@ -1,0 +1,33 @@
+{
+  "name": "node-red-contrib-easy-pid-controller",
+  "version": "1.0.0",
+  "description": "A Node-RED node for implementing an easy PID controller",
+  "main": "easy-pid.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "node-red": {
+    "nodes": {
+      "easy-pid-controller": "easy-pid.js"
+    }
+  },
+  "author": "Harshad Joshi (github.com/hj91)",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "simple-pid-controller": "1.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hj91/node-red-contrib-easy-pid-controller.git"
+  },
+  "keywords": [
+    "node-red",
+    "PID",
+    "controller"
+  ],
+  "bugs": {
+    "url": "https://github.com/hj91/node-red-contrib-easy-pid-controller/issues"
+  },
+  "homepage": "https://github.com/hj91/node-red-contrib-easy-pid-controller#readme"
+}
+
