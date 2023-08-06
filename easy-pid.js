@@ -56,7 +56,7 @@ module.exports = function(RED) {
 
         // Create PID Controller
         try {
-            controller = new PIDController(node.k_p, node.k_i, node.k_d, node.dt);
+            controller = new PIDController(node.k_p, node.k_i, node.k_d);
             controller.setTarget(node.sv);
         } catch (error) {
             node.error("Error creating PID Controller: " + error.message);
