@@ -1,16 +1,97 @@
 [
     {
-        "id": "af9c01cee2f5fe78",
+        "id": "8bcc78a80d0753f6",
         "type": "tab",
-        "label": "easy-pid-controller",
+        "label": "easy pid",
         "disabled": false,
         "info": "",
         "env": []
     },
     {
-        "id": "bda83d7cae08210b",
+        "id": "824f517bb54ec8fb",
+        "type": "easy-pid-controller",
+        "z": "8bcc78a80d0753f6",
+        "name": "",
+        "k_p": "1.2",
+        "k_i": "1",
+        "k_d": "0.01",
+        "sensor_type": "4-20mA",
+        "dt": "1",
+        "range_min": "0",
+        "range_max": "100",
+        "x": 530,
+        "y": 200,
+        "wires": [
+            [
+                "4cbd4fd8445b5301",
+                "fed8ec916835b82a",
+                "829fe279c5d63469"
+            ]
+        ]
+    },
+    {
+        "id": "8e0b66211ec865fe",
+        "type": "mqtt in",
+        "z": "8bcc78a80d0753f6",
+        "name": "",
+        "topic": "SV",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "8101d945.ea6768",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 310,
+        "y": 200,
+        "wires": [
+            [
+                "824f517bb54ec8fb"
+            ]
+        ]
+    },
+    {
+        "id": "8b1ccfc0975d47f7",
+        "type": "mqtt in",
+        "z": "8bcc78a80d0753f6",
+        "name": "",
+        "topic": "PV",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "8101d945.ea6768",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 310,
+        "y": 280,
+        "wires": [
+            [
+                "824f517bb54ec8fb"
+            ]
+        ]
+    },
+    {
+        "id": "4cbd4fd8445b5301",
+        "type": "debug",
+        "z": "8bcc78a80d0753f6",
+        "name": "debug 244",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 790,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "0586b87e4165a3e9",
         "type": "inject",
-        "z": "af9c01cee2f5fe78",
+        "z": "8bcc78a80d0753f6",
         "name": "",
         "props": [
             {
@@ -21,25 +102,25 @@
                 "vt": "str"
             }
         ],
-        "repeat": "",
+        "repeat": "1",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "true",
         "payloadType": "bool",
-        "x": 230,
-        "y": 160,
+        "x": 130,
+        "y": 140,
         "wires": [
             [
-                "d8a37bb6a0343960"
+                "747852e2c9cd5dfb"
             ]
         ]
     },
     {
-        "id": "d8a37bb6a0343960",
+        "id": "747852e2c9cd5dfb",
         "type": "change",
-        "z": "af9c01cee2f5fe78",
+        "z": "8bcc78a80d0753f6",
         "name": "",
         "rules": [
             {
@@ -55,113 +136,86 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 390,
-        "y": 160,
+        "x": 290,
+        "y": 140,
         "wires": [
             [
-                "d61bd67142d4257d"
+                "824f517bb54ec8fb"
             ]
         ]
     },
     {
-        "id": "6d72cfb9e75def77",
-        "type": "debug",
-        "z": "af9c01cee2f5fe78",
-        "name": "debug 239",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": true,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "payload",
-        "statusType": "auto",
-        "x": 790,
-        "y": 360,
+        "id": "fed8ec916835b82a",
+        "type": "influxdb out",
+        "z": "8bcc78a80d0753f6",
+        "influxdb": "073bf1f18e97e7fb",
+        "name": "",
+        "measurement": "valve",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 730,
+        "y": 120,
         "wires": []
     },
     {
-        "id": "d61bd67142d4257d",
-        "type": "easy-pid-controller",
-        "z": "af9c01cee2f5fe78",
-        "name": "",
-        "sv": "10",
-        "k_p": 1,
-        "k_i": "0.5",
-        "k_d": "0.05",
-        "sensor_type": "0-10V",
-        "dt": "1",
-        "x": 610,
-        "y": 280,
-        "wires": [
-            [
-                "6d72cfb9e75def77",
-                "83ee3ce3431113a9"
-            ]
-        ]
+        "id": "fe7800415ab3fdf9",
+        "type": "comment",
+        "z": "8bcc78a80d0753f6",
+        "name": "Sends and receives data from send-to-easy-pid-node-red,js",
+        "info": "Now set SV using mag.payload instead of node.config",
+        "x": 250,
+        "y": 60,
+        "wires": []
     },
     {
-        "id": "3f5e510e2ee024fa",
-        "type": "mqtt in",
-        "z": "af9c01cee2f5fe78",
-        "name": "",
-        "topic": "PV",
-        "qos": "2",
-        "datatype": "auto-detect",
-        "broker": "8101d945.ea6768",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 210,
-        "y": 280,
-        "wires": [
-            [
-                "d61bd67142d4257d"
-            ]
-        ]
-    },
-    {
-        "id": "83ee3ce3431113a9",
-        "type": "json",
-        "z": "af9c01cee2f5fe78",
-        "name": "",
+        "id": "d969396a8897043e",
+        "type": "range",
+        "z": "8bcc78a80d0753f6",
+        "minin": "4",
+        "maxin": "20",
+        "minout": "0",
+        "maxout": "100",
+        "action": "scale",
+        "round": false,
         "property": "payload",
-        "action": "obj",
-        "pretty": false,
-        "x": 770,
-        "y": 160,
+        "name": "",
+        "x": 840,
+        "y": 300,
         "wires": [
             [
-                "408f9f5b2e1e16b4"
+                "5a1730e1cc5e429b"
             ]
         ]
     },
     {
-        "id": "408f9f5b2e1e16b4",
+        "id": "829fe279c5d63469",
         "type": "function",
-        "z": "af9c01cee2f5fe78",
-        "name": "Get SV",
-        "func": "var sv = msg.payload.SV\n\nmsg.payload = sv\n\nreturn msg;",
+        "z": "8bcc78a80d0753f6",
+        "name": "Value",
+        "func": "var op = msg.payload.Value;\n\nmsg.payload = op;\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 920,
-        "y": 160,
+        "x": 690,
+        "y": 300,
         "wires": [
             [
-                "423393d0936759f8",
-                "29151daedc3b24de"
+                "d969396a8897043e"
             ]
         ]
     },
     {
-        "id": "423393d0936759f8",
+        "id": "5a1730e1cc5e429b",
         "type": "debug",
-        "z": "af9c01cee2f5fe78",
-        "name": "debug 240",
+        "z": "8bcc78a80d0753f6",
+        "name": "debug 246",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -170,56 +224,8 @@
         "targetType": "msg",
         "statusVal": "payload",
         "statusType": "auto",
-        "x": 1070,
-        "y": 60,
-        "wires": []
-    },
-    {
-        "id": "29151daedc3b24de",
-        "type": "mqtt out",
-        "z": "af9c01cee2f5fe78",
-        "name": "",
-        "topic": "sv",
-        "qos": "2",
-        "retain": "true",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "8101d945.ea6768",
-        "x": 1070,
-        "y": 240,
-        "wires": []
-    },
-    {
-        "id": "20228a4423dcac13",
-        "type": "comment",
-        "z": "af9c01cee2f5fe78",
-        "name": "Send this value to virtual valve",
-        "info": "The virtual valve takes this value and accordingly publishes PV which is then provided as FB to simple-pid-controller",
-        "x": 1080,
+        "x": 1010,
         "y": 300,
-        "wires": []
-    },
-    {
-        "id": "3fb6c2a7c734e69a",
-        "type": "comment",
-        "z": "af9c01cee2f5fe78",
-        "name": "Get this value from virtual valve",
-        "info": "",
-        "x": 210,
-        "y": 340,
-        "wires": []
-    },
-    {
-        "id": "9b83dcad223c3d8e",
-        "type": "comment",
-        "z": "af9c01cee2f5fe78",
-        "name": "Sample flow using simple-pid-controller library",
-        "info": "",
-        "x": 250,
-        "y": 60,
         "wires": []
     },
     {
@@ -251,5 +257,32 @@
         "willMsg": {},
         "userProps": "",
         "sessionExpiry": ""
+    },
+    {
+        "id": "073bf1f18e97e7fb",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "easypid",
+        "name": "easypid",
+        "usetls": false,
+        "tls": "dffcbfae.6e9d",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "dffcbfae.6e9d",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false
     }
 ]
