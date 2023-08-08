@@ -22,30 +22,26 @@ const PIDController = require('simple-pid-controller');
 module.exports = function(RED) {
     function EasyPIDControllerNode(config) {
         RED.nodes.createNode(this, config);
-
         const node = this;
         let controller = null;
 
-        // Parse configuration parameters
         try {
-            node.sv = Number(config.sv);
             node.k_p = Number(config.k_p);
             node.k_i = Number(config.k_i);
             node.k_d = Number(config.k_d);
             node.dt = Number(config.dt);
-           // node.step_count = Number(config.step_count);
             node.sensor_type = config.sensor_type;
+            node.range_min = Number(config.range_min);
+            node.range_max = Number(config.range_max);
         } catch (error) {
             node.error("Error parsing configuration parameters: " + error.message);
             return;
         }
 
-        // Current process value
         node.currentValue = 0;
 
-        // Validate parameters
-        if (isNaN(node.sv) || isNaN(node.k_p) || isNaN(node.k_i) || isNaN(node.k_d) || isNaN(node.dt)) { // || isNaN(node.step_count)) {
-            node.error("Invalid parameters: Check that SV, Kp, Ki, Kd, dt, and step count are numbers.");
+        if (isNaN(node.k_p) || isNaN(node.k_i) || isNaN(node.k_d) || isNaN(node.dt) || isNaN(node.range_min) || isNaN(node.range_max)) {
+            node.error("Invalid parameters: Ensure Kp, Ki, Kd, dt, range_min, and range_max are numbers.");
             return;
         }
 
@@ -54,10 +50,8 @@ module.exports = function(RED) {
             return;
         }
 
-        // Create PID Controller
         try {
             controller = new PIDController(node.k_p, node.k_i, node.k_d);
-            controller.setTarget(node.sv);
         } catch (error) {
             node.error("Error creating PID Controller: " + error.message);
             return;
@@ -65,69 +59,69 @@ module.exports = function(RED) {
 
         let pidTimer = null;
 
-        node.on('input', function(msg) {
-            try {
-                if (msg.topic === 'auto' && msg.payload === true) {
-                    if(pidTimer == null){
-                        // Start a repeating timer that fires every dt milliseconds
-                        pidTimer = setInterval(function() {
-                            let output;
-                            try {
-                                output = controller.update(node.currentValue);
-                            } catch (error) {
-                                node.error("Error updating PID Controller: " + error.message);
-                                clearInterval(pidTimer);
-                                pidTimer = null;
-                                return;
-                            }
+        function mapToRange(value, inputMin, inputMax, outputMin, outputMax) {
+            return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+        }
 
-                            let msg = {
-                                payload: {
-                                    PV: node.currentValue,
-                                    SV: node.sv,
-                                    P: controller.p,
-                                    I: controller.i,
-                                    D: controller.d,
-                                    Output: node.sensor_type === "0-10V" ? limitRange(convertToVoltage(output), 0, 10) : limitRange(convertToCurrent(output), 4, 20)
-                                }
-                            };
+    node.on('input', function(msg) {
+    try {
+        if (msg.topic === 'SV') {
+            controller.setTarget(msg.payload);
+        }
 
-                            node.send(msg);
-                        }, node.dt * 1000); // dt is in seconds, convert to milliseconds
+        if (msg.topic === 'auto' && msg.payload === true) {
+            if (pidTimer == null) {
+                pidTimer = setInterval(function() {
+                    let pidOutput = controller.update(node.currentValue);
+
+                    // Map the PID output to the user's range
+                    let scaledOutput = mapToRange(pidOutput, node.range_min, node.range_max, 0, 1);
+
+                    let signal, value;
+
+                    if (node.sensor_type === "0-10V") {
+                        signal = scaledOutput * 10;  // Map to [0, 10]
+                        value = mapToRange(node.currentValue, node.range_min, node.range_max, 0, 10); // Map current value to [0, 10]
+                    } else {
+                        signal = 4 + scaledOutput * 16; // Map to [4, 20]
+                        value = mapToRange(node.currentValue, node.range_min, node.range_max, 4, 20); // Map current value to [4, 20]
                     }
-                }
-                if (msg.topic === 'PV') {
-                    if (typeof msg.payload !== 'number') {
-                        node.error("Received PV value is not a number.");
-                        return;
-                    }
-                    node.currentValue = msg.payload;
-                }
-            } catch (error) {
-                node.error("Error handling input: " + error.message);
+
+                    let msgOutput = {
+                        payload: {
+                            PV: node.currentValue,
+                            SV: controller.target,
+                            P: controller.p,
+                            I: controller.i,
+                            D: controller.d,
+                            Output: signal,
+                            Value: value  // Adding the new 'Value' field here - Use Range node if required..
+                        }
+                    };
+
+                    node.send(msgOutput);
+                }, node.dt * 1000);
             }
-        });
-
-        function convertToVoltage(output) {
-            // Convert output to percentage then scale to 0-10V
-            let percent = (output - node.sv) / node.sv;
-            return limitRange(percent * 10, 0, 10);
         }
 
-        function convertToCurrent(output) {
-            // Convert output to percentage then scale to 4-20mA
-            let percent = (output - node.sv) / node.sv;
-            return limitRange(4 + (percent * (20 - 4)), 4, 20);
+        if (msg.topic === 'PV') {
+            if (typeof msg.payload !== 'number') {
+                node.error("Received PV value is not a number.");
+                return;
+            }
+            node.currentValue = msg.payload;
         }
+    } catch (error) {
+        node.error("Error handling input: " + error.message);
+    }
+});
+ 
+        
 
-        // A utility function to limit output within a range
-        function limitRange(value, min, max) {
-            return Math.max(min, Math.min(max, value));
-        }
 
         node.on('close', function() {
             try {
-                if(pidTimer != null){
+                if (pidTimer != null) {
                     clearInterval(pidTimer);
                     pidTimer = null;
                 }

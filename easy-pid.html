@@ -22,12 +22,13 @@ limitations under the License.
         color: '#a6bbcf',
         defaults: {
             name: { value: "" },
-            sv: { value: 0, required: true },
             k_p: { value: 1.0, required: true },
             k_i: { value: 0.0, required: true },
             k_d: { value: 0.0, required: true },
             sensor_type: { value: "0-10V", required: true },
-            dt: { value: "1",required: true}
+            dt: { value: "1",required: true},
+            range_min: { value: 0, required: true },
+            range_max: { value: 100, required: true }
         },
         inputs: 1,
         outputs: 1,
@@ -42,10 +43,6 @@ limitations under the License.
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
-    </div>
-    <div class="form-row">
-        <label for="node-input-sv">SV</label>
-        <input type="number" id="node-input-sv">
     </div>
     <div class="form-row">
         <label for="node-input-k_p">KP</label>
@@ -70,19 +67,29 @@ limitations under the License.
             <option value="4-20mA">4-20mA</option>
         </select>
     </div>
+    <div class="form-row">
+        <label for="node-input-range_min">Range Min</label>
+        <input type="number" id="node-input-range_min">
+    </div>
+    <div class="form-row">
+        <label for="node-input-range_max">Range Max</label>
+        <input type="number" id="node-input-range_max">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="easy-pid-controller">
     <p>This node provides a PID (Proportional-Integral-Derivative) controller based on simple-pid-controller library.</p>
     <p>The PID controller node has the following configuration parameters:</p>
     <ul>
-        <li><b>SV</b>: The Set Value, which is the desired output value.</li>
         <li><b>KP</b>: The Proportional gain, which determines how much the controller responds proportionally to the current error.</li>
         <li><b>KI</b>: The Integral gain, which determines how much the controller responds based on the cumulative error over time.</li>
         <li><b>KD</b>: The Derivative gain, which determines how much the controller responds based on the rate of change of the error.</li>
         <li><b>dt</b>: The time interval for each step, in seconds.</li>
         <li><b>Sensor Type</b>: The type of sensor used, which determines the output range. The options are 0-10V and 4-20mA.</li>
+        <li><b>Range Min</b>: Minimum range value for output mapping.</li>
+        <li><b>Range Max</b>: Maximum range value for output mapping.</li>
     </ul>
     <p>When the 'auto' message is received with a payload of true, the node starts a repeating timer that fires every dt milliseconds. On each timer tick, the PID controller updates based on the current process value, and the node sends a message containing the current state of the controller.</p>
     <p>The 'PV' message can be used to update the current process value. The payload must be a number.</p>
 </script>
+
