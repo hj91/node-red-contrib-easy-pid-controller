@@ -16,7 +16,6 @@
 
  **/
 
-
 const PIDController = require('simple-pid-controller');
 
 module.exports = function(RED) {
@@ -63,61 +62,69 @@ module.exports = function(RED) {
             return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
         }
 
-    node.on('input', function(msg) {
-    try {
-        if (msg.topic === 'SV') {
-            controller.setTarget(msg.payload);
-        }
+        node.on('input', function(msg) {
+            try {
+                if (msg.topic === 'SV') {
+                    controller.setTarget(msg.payload);
+                    node.status({fill:"yellow", shape:"dot", text:"Setpoint updated to: " + msg.payload});
+                }
 
-        if (msg.topic === 'auto' && msg.payload === true) {
-            if (pidTimer == null) {
-                pidTimer = setInterval(function() {
-                    let pidOutput = controller.update(node.currentValue);
+                if (msg.topic === 'auto' && msg.payload === true) {
+                    node.status({fill:"green", shape:"dot", text:"PID active"});
+                    if (pidTimer == null) {
+                        pidTimer = setInterval(function() {
+                            let pidOutput = controller.update(node.currentValue);
+                            // Map the PID output to the user's range
+                            let scaledOutput = mapToRange(pidOutput, node.range_min, node.range_max, 0, 1);
 
-                    // Map the PID output to the user's range
-                    let scaledOutput = mapToRange(pidOutput, node.range_min, node.range_max, 0, 1);
+                            let signal, value;
 
-                    let signal, value;
+                            if (node.sensor_type === "0-10V") {
+                                signal = scaledOutput * 10;  // Map to [0, 10]
+                                value = mapToRange(node.currentValue, node.range_min, node.range_max, 0, 10); // Map current value to [0, 10]
+                            } else {
+                                signal = 4 + scaledOutput * 16; // Map to [4, 20]
+                                value = mapToRange(node.currentValue, node.range_min, node.range_max, 4, 20); // Map current value to [4, 20]
+                            }
 
-                    if (node.sensor_type === "0-10V") {
-                        signal = scaledOutput * 10;  // Map to [0, 10]
-                        value = mapToRange(node.currentValue, node.range_min, node.range_max, 0, 10); // Map current value to [0, 10]
-                    } else {
-                        signal = 4 + scaledOutput * 16; // Map to [4, 20]
-                        value = mapToRange(node.currentValue, node.range_min, node.range_max, 4, 20); // Map current value to [4, 20]
+                            let msgOutput = {
+                                payload: {
+                                    PV: node.currentValue,
+                                    SV: controller.target,
+                                    P: controller.p,
+                                    I: controller.i,
+                                    D: controller.d,
+                                    Output: signal,
+                                    Value: value  // Adding the new 'Value' field here - Use Range node if required..
+                                }
+                            };
+
+                            node.send(msgOutput);
+                        }, node.dt * 1000);
                     }
+                }
+                // If 'auto' is set to false, stop the PID process
+                else if (msg.topic === 'auto' && msg.payload === false) {
+                    if (pidTimer !== null) {
+                        clearInterval(pidTimer);
+                        pidTimer = null;
+                        node.status({fill:"red", shape:"ring", text:"PID inactive"});
+                    }
+                }
 
-                    let msgOutput = {
-                        payload: {
-                            PV: node.currentValue,
-                            SV: controller.target,
-                            P: controller.p,
-                            I: controller.i,
-                            D: controller.d,
-                            Output: signal,
-                            Value: value  // Adding the new 'Value' field here - Use Range node if required..
-                        }
-                    };
-
-                    node.send(msgOutput);
-                }, node.dt * 1000);
+                if (msg.topic === 'PV') {
+                    if (typeof msg.payload !== 'number') {
+                        node.error("Received PV value is not a number.");
+                        return;
+                    }
+                    node.currentValue = msg.payload;
+                    node.status({fill:"blue", shape:"ring", text:"Current PV: " + node.currentValue});
+                }
+            } catch (error) {
+                node.error("Error handling input: " + error.message);
+                node.status({fill:"red", shape:"ring", text:"Error: " + error.message});
             }
-        }
-
-        if (msg.topic === 'PV') {
-            if (typeof msg.payload !== 'number') {
-                node.error("Received PV value is not a number.");
-                return;
-            }
-            node.currentValue = msg.payload;
-        }
-    } catch (error) {
-        node.error("Error handling input: " + error.message);
-    }
-});
- 
-        
-
+        });
 
         node.on('close', function() {
             try {
