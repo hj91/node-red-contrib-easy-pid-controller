@@ -9,6 +9,7 @@ The `easy-pid-controller` is a simple-to-use Node-RED node that provides Proport
 - Process Variable (`PV`) input to feedback the current state.
 - Output values for PID components (P, I, D), final output signal, and mapped value signal.
 - Choice of control signal types: `0-10V` or `4-20mA`.
+- Real-time status updates during runtime for easier debugging and monitoring.
 
 ### Installation
 
@@ -41,6 +42,10 @@ The node outputs an object payload containing:
 
 ### Changelog
 
+#### v1.2.1
+
+- **Added**: Node status updates during runtime to display relevant information like current PV, PID activation state, and more.
+  
 #### v1.2.0
 
 - **Changed**: Moved the Setpoint (`SV`) from node configuration to `msg.payload` with the topic `SV`.
@@ -70,3 +75,4 @@ Visit the `examples/` directory for a sample flow illustrating the usage of the 
 ### Author 
 
 Harshad Joshi @ Bufferstack.IO Analytics Technology LLP, Pune
+
