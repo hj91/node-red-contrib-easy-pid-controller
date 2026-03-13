@@ -1,12 +1,12 @@
 <!--
 
-easy-pid.html - Copyright 2023 Harshad Joshi and Bufferstack.IO Analytics Technology LLP, Pune.
+easy-pid.html - Copyright 2023-2026 Harshad Joshi and Bufferstack.IO Analytics Technology LLP, Pune
 
 Licensed under the GNU General Public License, Version 3.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://www.gnu.org/licenses/gpl-3.0.html
+https://www.gnu.org/licenses/gpl-3.0.html
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,82 +14,212 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+Updated for simple-pid-controller v2.0.0:
+  - Added fields: output_min, output_max, int_min, int_max, deadband, settled_tol
+  - Help panel updated with all new input topics and output payload fields
+
 -->
 
 <script type="text/javascript">
-    RED.nodes.registerType('easy-pid-controller', {
-        category: 'Bufferstack.IO Industrial Process Nodes',
-        color: '#a6bbcf',
-        defaults: {
-            name: { value: "" },
-            k_p: { value: 1.0, required: true },
-            k_i: { value: 0.0, required: true },
-            k_d: { value: 0.0, required: true },
-            sensor_type: { value: "0-10V", required: true },
-            dt: { value: "1",required: true},
-            range_min: { value: 0, required: true },
-            range_max: { value: 100, required: true }
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "font-awesome/fa-line-chart",
-        label: function() {
-            return this.name || "easy-pid-controller";
-        }
-    });
+  RED.nodes.registerType('easy-pid-controller', {
+    category: 'function',
+    color: '#a6bbcf',
+    defaults: {
+      name:        { value: '' },
+      k_p:         { value: 1.0,   required: true, validate: RED.validators.number() },
+      k_i:         { value: 0.0,   required: true, validate: RED.validators.number() },
+      k_d:         { value: 0.0,   required: true, validate: RED.validators.number() },
+      dt:          { value: 1.0,   required: true, validate: RED.validators.number() },
+      sensor_type: { value: '0-10V' },
+      range_min:   { value: 0,     required: true, validate: RED.validators.number() },
+      range_max:   { value: 100,   required: true, validate: RED.validators.number() },
+      // v2.0.0 additions
+      output_min:  { value: -100,  required: false, validate: RED.validators.number() },
+      output_max:  { value:  100,  required: false, validate: RED.validators.number() },
+      int_min:     { value: -500,  required: false, validate: RED.validators.number() },
+      int_max:     { value:  500,  required: false, validate: RED.validators.number() },
+      deadband:    { value: 0,     required: false, validate: RED.validators.number() },
+      settled_tol: { value: 0,     required: false, validate: RED.validators.number() },
+    },
+    inputs:  1,
+    outputs: 1,
+    icon: 'font-awesome/fa-sliders',
+    label: function () {
+      return this.name || 'easy-pid-controller';
+    },
+    paletteLabel: 'easy-pid',
+  });
 </script>
 
-<script type="text/x-red" data-template-name="easy-pid-controller">
-    <div class="form-row">
-        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name">
-    </div>
-    <div class="form-row">
-        <label for="node-input-k_p">KP</label>
-        <input type="number" id="node-input-k_p" step="0.01">
-    </div>
-    <div class="form-row">
-        <label for="node-input-k_i">KI</label>
-        <input type="number" id="node-input-k_i" step="0.01">
-    </div>
-    <div class="form-row">
-        <label for="node-input-k_d">KD</label>
-        <input type="number" id="node-input-k_d" step="0.01">
-    </div>
-    <div class="form-row">
-        <label for="node-input-dt">dt</label>
-        <input type="number" id="node-input-dt">
-    </div>
-    <div class="form-row">
-        <label for="node-input-sensor_type">Sensor Type</label>
-        <select id="node-input-sensor_type">
-            <option value="0-10V">0-10V</option>
-            <option value="4-20mA">4-20mA</option>
-        </select>
-    </div>
-    <div class="form-row">
-        <label for="node-input-range_min">Range Min</label>
-        <input type="number" id="node-input-range_min">
-    </div>
-    <div class="form-row">
-        <label for="node-input-range_max">Range Max</label>
-        <input type="number" id="node-input-range_max">
-    </div>
+<script type="text/html" data-template-name="easy-pid-controller">
+
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <hr/>
+  <p><strong>PID Gains</strong></p>
+
+  <div class="form-row">
+    <label for="node-input-k_p"><i class="fa fa-calculator"></i> Kp</label>
+    <input type="number" id="node-input-k_p" placeholder="1.0" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-k_i"><i class="fa fa-calculator"></i> Ki</label>
+    <input type="number" id="node-input-k_i" placeholder="0.0" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-k_d"><i class="fa fa-calculator"></i> Kd</label>
+    <input type="number" id="node-input-k_d" placeholder="0.0" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-dt"><i class="fa fa-clock-o"></i> dt (s)</label>
+    <input type="number" id="node-input-dt" placeholder="1.0" step="any" min="0.001">
+    <span style="font-size:0.85em; color:#888;">Loop interval in seconds. Dynamic timestamps used for accurate dt internally.</span>
+  </div>
+
+  <hr/>
+  <p><strong>Output &amp; Anti-windup Limits</strong></p>
+
+  <div class="form-row">
+    <label for="node-input-output_min"><i class="fa fa-arrow-down"></i> Output Min</label>
+    <input type="number" id="node-input-output_min" placeholder="-100" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-output_max"><i class="fa fa-arrow-up"></i> Output Max</label>
+    <input type="number" id="node-input-output_max" placeholder="100" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-int_min"><i class="fa fa-minus-circle"></i> Integral Min</label>
+    <input type="number" id="node-input-int_min" placeholder="-500" step="any">
+    <span style="font-size:0.85em; color:#888;">Anti-windup lower clamp on integral accumulator.</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-int_max"><i class="fa fa-plus-circle"></i> Integral Max</label>
+    <input type="number" id="node-input-int_max" placeholder="500" step="any">
+    <span style="font-size:0.85em; color:#888;">Anti-windup upper clamp on integral accumulator.</span>
+  </div>
+
+  <hr/>
+  <p><strong>Deadband &amp; Settled Tolerance</strong></p>
+
+  <div class="form-row">
+    <label for="node-input-deadband"><i class="fa fa-bullseye"></i> Deadband</label>
+    <input type="number" id="node-input-deadband" placeholder="0" step="any" min="0">
+    <span style="font-size:0.85em; color:#888;">Output forced to 0 when |error| &le; deadband. Set 0 to disable.</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-settled_tol"><i class="fa fa-check-circle"></i> Settled Tolerance</label>
+    <input type="number" id="node-input-settled_tol" placeholder="0" step="any" min="0">
+    <span style="font-size:0.85em; color:#888;">Stops loop when |error| &le; this value. Set 0 to disable.</span>
+  </div>
+
+  <hr/>
+  <p><strong>Signal Scaling</strong></p>
+
+  <div class="form-row">
+    <label for="node-input-sensor_type"><i class="fa fa-bolt"></i> Signal Type</label>
+    <select id="node-input-sensor_type">
+      <option value="0-10V">0–10 V</option>
+      <option value="4-20mA">4–20 mA</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-range_min"><i class="fa fa-minus"></i> Range Min</label>
+    <input type="number" id="node-input-range_min" placeholder="0" step="any">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-range_max"><i class="fa fa-plus"></i> Range Max</label>
+    <input type="number" id="node-input-range_max" placeholder="100" step="any">
+  </div>
+
 </script>
 
-<script type="text/x-red" data-help-name="easy-pid-controller">
-    <p>This node provides a PID (Proportional-Integral-Derivative) controller based on simple-pid-controller library.</p>
-    <p>The PID controller node has the following configuration parameters:</p>
-    <ul>
-        <li><b>KP</b>: The Proportional gain, which determines how much the controller responds proportionally to the current error.</li>
-        <li><b>KI</b>: The Integral gain, which determines how much the controller responds based on the cumulative error over time.</li>
-        <li><b>KD</b>: The Derivative gain, which determines how much the controller responds based on the rate of change of the error.</li>
-        <li><b>dt</b>: The time interval for each step, in seconds.</li>
-        <li><b>Sensor Type</b>: The type of sensor used, which determines the output range. The options are 0-10V and 4-20mA.</li>
-        <li><b>Range Min</b>: Minimum range value for output mapping.</li>
-        <li><b>Range Max</b>: Maximum range value for output mapping.</li>
-    </ul>
-    <p>When the 'auto' message is received with a payload of true, the node starts a repeating timer that fires every dt milliseconds. On each timer tick, the PID controller updates based on the current process value, and the node sends a message containing the current state of the controller.</p>
-    <p>The 'PV' message can be used to update the current process value. The payload must be a number.</p>
-</script>
+<script type="text/html" data-help-name="easy-pid-controller">
+  <p>
+    An industrial-grade PID controller node built on
+    <a href="https://www.npmjs.com/package/simple-pid-controller" target="_blank">simple-pid-controller v2.0.0</a>.
+    Supports anti-windup, output clamping, deadband, bumpless transfer, runtime gain tuning,
+    and derivative on measurement.
+  </p>
 
+  <h3>Input Topics</h3>
+  <dl class="message-properties">
+    <dt>SV <span class="property-type">number</span></dt>
+    <dd>Set the target setpoint. Also resets integral and derivative state.</dd>
+
+    <dt>PV <span class="property-type">number</span></dt>
+    <dd>Update the current process variable reading.</dd>
+
+    <dt>auto <span class="property-type">boolean</span></dt>
+    <dd><code>true</code> — start the PID loop (switches to auto mode with bumpless transfer if coming from manual).<br/>
+        <code>false</code> — stop the loop and switch to manual mode.</dd>
+
+    <dt>gains <span class="property-type">object</span></dt>
+    <dd>Update PID gains at runtime without restarting the node.<br/>
+        Payload: <code>{ k_p: number, k_i: number, k_d: number }</code></dd>
+
+    <dt>mode <span class="property-type">string</span></dt>
+    <dd>Switch between <code>"auto"</code> and <code>"manual"</code> modes.<br/>
+        Switching manual → auto performs a bumpless transfer automatically.</dd>
+
+    <dt>manual_output <span class="property-type">number</span></dt>
+    <dd>Set the fixed output value used in manual mode. Also seeds the bumpless transfer on return to auto.</dd>
+
+    <dt>reset <span class="property-type">any</span></dt>
+    <dd>Clear all internal state: integral accumulator, derivative memory, PV history, and timestamp.
+        Use after fault recovery or process restarts.</dd>
+  </dl>
+
+  <h3>Output Payload</h3>
+  <dl class="message-properties">
+    <dt>PV <span class="property-type">number</span></dt>
+    <dd>Current process variable.</dd>
+
+    <dt>SV <span class="property-type">number</span></dt>
+    <dd>Current setpoint.</dd>
+
+    <dt>error <span class="property-type">number</span></dt>
+    <dd>SV − PV (current error).</dd>
+
+    <dt>P <span class="property-type">number</span></dt>
+    <dd>Proportional term value.</dd>
+
+    <dt>I <span class="property-type">number</span></dt>
+    <dd>Integral term value (anti-windup clamped).</dd>
+
+    <dt>D <span class="property-type">number</span></dt>
+    <dd>Derivative term value (derivative on measurement — no kick on setpoint change).</dd>
+
+    <dt>output <span class="property-type">number</span></dt>
+    <dd>Raw clamped PID output (P + I + D, within outputMin/outputMax).</dd>
+
+    <dt>Signal <span class="property-type">number</span></dt>
+    <dd>PID output scaled to the configured signal range (0–10 V or 4–20 mA).</dd>
+
+    <dt>Value <span class="property-type">number</span></dt>
+    <dd>Current PV mapped to signal units for display or Range node input.</dd>
+
+    <dt>mode <span class="property-type">string</span></dt>
+    <dd>Current controller mode: <code>"auto"</code> or <code>"manual"</code>.</dd>
+  </dl>
+
+  <h3>Notes</h3>
+  <ul>
+    <li><b>Dynamic dt:</b> The controller computes true elapsed time between cycles internally using timestamps. The <i>dt</i> field in the editor is the target loop interval and serves as a fallback for the first cycle only.</li>
+    <li><b>Anti-windup:</b> Set Integral Min/Max to prevent the integral term from accumulating beyond actuator limits during saturation.</li>
+    <li><b>Deadband:</b> Forces output to zero when the error is negligible. Useful for reducing wear on valves, nutrunners, and motors.</li>
+    <li><b>Settled Tolerance:</b> When set, the node stops the loop automatically once the process converges. The loop can be restarted with <code>auto: true</code>.</li>
+    <li><b>Bumpless Transfer:</b> Switching from manual to auto pre-loads the integral so the first auto output matches the last manual output.</li>
+  </ul>
+</script>
