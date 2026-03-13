@@ -1,17 +1,17 @@
 [
     {
-        "id": "8bcc78a80d0753f6",
+        "id": "d216577e3e3a3883",
         "type": "tab",
-        "label": "easy pid",
+        "label": "easy-pid v2.0.0",
         "disabled": false,
-        "info": "",
+        "info": "Updated flow for easy-pid-controller v2.0.0 (simple-pid-controller v2.0.0).\nNew features: anti-windup, output clamping, deadband, settled tolerance,\nbumpless transfer, runtime gain tuning, reset, mode switching.",
         "env": []
     },
     {
-        "id": "824f517bb54ec8fb",
+        "id": "ff4f314e643669e7",
         "type": "easy-pid-controller",
-        "z": "8bcc78a80d0753f6",
-        "name": "",
+        "z": "d216577e3e3a3883",
+        "name": "PID Controller v2",
         "k_p": "1.2",
         "k_i": "1",
         "k_d": "0.01",
@@ -19,21 +19,33 @@
         "dt": "1",
         "range_min": "0",
         "range_max": "100",
-        "x": 530,
-        "y": 200,
+        "x": 570,
+        "y": 300,
         "wires": [
             [
-                "4cbd4fd8445b5301",
-                "fed8ec916835b82a",
-                "829fe279c5d63469"
+                "870313a4239f2e04",
+                "cf2071e2cad61e26",
+                "df1921ccb23ef9f4",
+                "27821f05268e7bf4",
+                "09a7c87653b70a2b"
             ]
         ]
     },
     {
-        "id": "8e0b66211ec865fe",
+        "id": "7b8480b5fa524b37",
+        "type": "comment",
+        "z": "d216577e3e3a3883",
+        "name": "── Inputs ─────────────────────────────────────────────",
+        "info": "",
+        "x": 310,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "3c301322ee60100e",
         "type": "mqtt in",
-        "z": "8bcc78a80d0753f6",
-        "name": "",
+        "z": "d216577e3e3a3883",
+        "name": "SV (setpoint)",
         "topic": "SV",
         "qos": "2",
         "datatype": "auto-detect",
@@ -42,19 +54,19 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 310,
-        "y": 200,
+        "x": 160,
+        "y": 300,
         "wires": [
             [
-                "824f517bb54ec8fb"
+                "ff4f314e643669e7"
             ]
         ]
     },
     {
-        "id": "8b1ccfc0975d47f7",
+        "id": "a4b65f5dc4b94653",
         "type": "mqtt in",
-        "z": "8bcc78a80d0753f6",
-        "name": "",
+        "z": "d216577e3e3a3883",
+        "name": "PV (process var)",
         "topic": "PV",
         "qos": "2",
         "datatype": "auto-detect",
@@ -63,36 +75,163 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 310,
-        "y": 280,
+        "x": 160,
+        "y": 360,
         "wires": [
             [
-                "824f517bb54ec8fb"
+                "ff4f314e643669e7"
             ]
         ]
     },
     {
-        "id": "4cbd4fd8445b5301",
-        "type": "debug",
-        "z": "8bcc78a80d0753f6",
-        "name": "debug 244",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": true,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "payload",
-        "statusType": "auto",
-        "x": 790,
-        "y": 200,
-        "wires": []
+        "id": "8a481b43e8f4e50b",
+        "type": "mqtt in",
+        "z": "d216577e3e3a3883",
+        "name": "gains (runtime tuning)",
+        "topic": "pid/gains",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "8101d945.ea6768",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 420,
+        "wires": [
+            [
+                "d1649b3ed580aca1"
+            ]
+        ]
     },
     {
-        "id": "0586b87e4165a3e9",
+        "id": "d1649b3ed580aca1",
+        "type": "change",
+        "z": "d216577e3e3a3883",
+        "name": "set topic: gains",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "gains",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 420,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "773ef6c85e947d30",
+        "type": "mqtt in",
+        "z": "d216577e3e3a3883",
+        "name": "mode (auto/manual)",
+        "topic": "pid/mode",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "8101d945.ea6768",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 480,
+        "wires": [
+            [
+                "f6fd717252fe7cb7"
+            ]
+        ]
+    },
+    {
+        "id": "f6fd717252fe7cb7",
+        "type": "change",
+        "z": "d216577e3e3a3883",
+        "name": "set topic: mode",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "mode",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 480,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "eeb935b80fda4b58",
+        "type": "mqtt in",
+        "z": "d216577e3e3a3883",
+        "name": "manual_output",
+        "topic": "pid/manual_output",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "8101d945.ea6768",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 540,
+        "wires": [
+            [
+                "a9288363770481a0"
+            ]
+        ]
+    },
+    {
+        "id": "a9288363770481a0",
+        "type": "change",
+        "z": "d216577e3e3a3883",
+        "name": "set topic: manual_output",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "manual_output",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 540,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "2ce6c514fc6ac6ad",
         "type": "inject",
-        "z": "8bcc78a80d0753f6",
-        "name": "",
+        "z": "d216577e3e3a3883",
+        "name": "Start PID",
         "props": [
             {
                 "p": "payload"
@@ -102,120 +241,181 @@
                 "vt": "str"
             }
         ],
-        "repeat": "1",
+        "repeat": "",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
-        "topic": "",
+        "topic": "auto",
         "payload": "true",
         "payloadType": "bool",
-        "x": 130,
-        "y": 140,
+        "x": 160,
+        "y": 180,
         "wires": [
             [
-                "747852e2c9cd5dfb"
+                "ff4f314e643669e7"
             ]
         ]
     },
     {
-        "id": "747852e2c9cd5dfb",
-        "type": "change",
-        "z": "8bcc78a80d0753f6",
-        "name": "",
-        "rules": [
+        "id": "1bc1e31e645e4329",
+        "type": "inject",
+        "z": "d216577e3e3a3883",
+        "name": "Stop PID",
+        "props": [
             {
-                "t": "set",
+                "p": "payload"
+            },
+            {
                 "p": "topic",
-                "pt": "msg",
-                "to": "auto",
-                "tot": "str"
+                "vt": "str"
             }
         ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 290,
-        "y": 140,
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "auto",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 160,
+        "y": 230,
         "wires": [
             [
-                "824f517bb54ec8fb"
+                "ff4f314e643669e7"
             ]
         ]
     },
     {
-        "id": "fed8ec916835b82a",
-        "type": "influxdb out",
-        "z": "8bcc78a80d0753f6",
-        "influxdb": "073bf1f18e97e7fb",
-        "name": "",
-        "measurement": "valve",
-        "precision": "",
-        "retentionPolicy": "",
-        "database": "database",
-        "precisionV18FluxV20": "ms",
-        "retentionPolicyV18Flux": "",
-        "org": "organisation",
-        "bucket": "bucket",
-        "x": 730,
+        "id": "370dbf992bd39315",
+        "type": "inject",
+        "z": "d216577e3e3a3883",
+        "name": "Reset Controller",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "reset",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 160,
+        "y": 600,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "3f89b9a1003a1520",
+        "type": "inject",
+        "z": "d216577e3e3a3883",
+        "name": "Switch: manual",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "mode",
+        "payload": "manual",
+        "payloadType": "str",
+        "x": 160,
+        "y": 650,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "da8f854b02969699",
+        "type": "inject",
+        "z": "d216577e3e3a3883",
+        "name": "Switch: auto (bumpless)",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "mode",
+        "payload": "auto",
+        "payloadType": "str",
+        "x": 165,
+        "y": 700,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "91f3a539368f7059",
+        "type": "inject",
+        "z": "d216577e3e3a3883",
+        "name": "Update gains example",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "gains",
+        "payload": "{\"k_p\":1.5,\"k_i\":0.8,\"k_d\":0.02}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 750,
+        "wires": [
+            [
+                "ff4f314e643669e7"
+            ]
+        ]
+    },
+    {
+        "id": "bedb9da565af7961",
+        "type": "comment",
+        "z": "d216577e3e3a3883",
+        "name": "── Outputs ────────────────────────────────────────────",
+        "info": "",
+        "x": 970,
         "y": 120,
         "wires": []
     },
     {
-        "id": "fe7800415ab3fdf9",
-        "type": "comment",
-        "z": "8bcc78a80d0753f6",
-        "name": "Sends and receives data from send-to-easy-pid-node-red,js",
-        "info": "Now set SV using mag.payload instead of node.config",
-        "x": 250,
-        "y": 60,
-        "wires": []
-    },
-    {
-        "id": "d969396a8897043e",
-        "type": "range",
-        "z": "8bcc78a80d0753f6",
-        "minin": "4",
-        "maxin": "20",
-        "minout": "0",
-        "maxout": "100",
-        "action": "scale",
-        "round": false,
-        "property": "payload",
-        "name": "",
-        "x": 840,
-        "y": 300,
-        "wires": [
-            [
-                "5a1730e1cc5e429b"
-            ]
-        ]
-    },
-    {
-        "id": "829fe279c5d63469",
-        "type": "function",
-        "z": "8bcc78a80d0753f6",
-        "name": "Value",
-        "func": "var op = msg.payload.Value;\n\nmsg.payload = op;\n\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 690,
-        "y": 300,
-        "wires": [
-            [
-                "d969396a8897043e"
-            ]
-        ]
-    },
-    {
-        "id": "5a1730e1cc5e429b",
+        "id": "870313a4239f2e04",
         "type": "debug",
-        "z": "8bcc78a80d0753f6",
-        "name": "debug 246",
+        "z": "d216577e3e3a3883",
+        "name": "Full PID Status",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -224,8 +424,166 @@
         "targetType": "msg",
         "statusVal": "payload",
         "statusType": "auto",
+        "x": 830,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "cf2071e2cad61e26",
+        "type": "influxdb out",
+        "z": "d216577e3e3a3883",
+        "influxdb": "073bf1f18e97e7fb",
+        "name": "InfluxDB: valve",
+        "measurement": "valve",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 840,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "27821f05268e7bf4",
+        "type": "function",
+        "z": "d216577e3e3a3883",
+        "name": "Map → InfluxDB fields",
+        "func": "// Map all v2.0.0 payload fields to explicit InfluxDB field set\n// Ensures error, output, and mode are stored alongside P/I/D\nvar p = msg.payload;\nmsg.payload = [\n  {\n    PV:     p.PV,\n    SV:     p.SV,\n    error:  p.error,\n    P:      p.P,\n    I:      p.I,\n    D:      p.D,\n    output: p.output,\n    Signal: p.Signal,\n    Value:  p.Value,\n    mode:   p.mode\n  },\n  { mode: p.mode }\n];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 360,
+        "wires": [
+            [
+                "6dfa7c60407560ad"
+            ]
+        ]
+    },
+    {
+        "id": "6dfa7c60407560ad",
+        "type": "influxdb out",
+        "z": "d216577e3e3a3883",
+        "influxdb": "073bf1f18e97e7fb",
+        "name": "InfluxDB: pid_fields",
+        "measurement": "pid_status",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1060,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "df1921ccb23ef9f4",
+        "type": "function",
+        "z": "d216577e3e3a3883",
+        "name": "Extract: Value",
+        "func": "// Value is PV mapped to signal units (e.g. 4-20mA)\nvar op = msg.payload.Value;\nmsg.payload = op;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 440,
+        "wires": [
+            [
+                "c09ce6c179e82e62"
+            ]
+        ]
+    },
+    {
+        "id": "c09ce6c179e82e62",
+        "type": "range",
+        "z": "d216577e3e3a3883",
+        "minin": "4",
+        "maxin": "20",
+        "minout": "0",
+        "maxout": "100",
+        "action": "scale",
+        "round": false,
+        "property": "payload",
+        "name": "",
         "x": 1010,
-        "y": 300,
+        "y": 440,
+        "wires": [
+            [
+                "e2ca6e3889634a33"
+            ]
+        ]
+    },
+    {
+        "id": "e2ca6e3889634a33",
+        "type": "debug",
+        "z": "d216577e3e3a3883",
+        "name": "Scaled Value (0-100)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 1190,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "09a7c87653b70a2b",
+        "type": "function",
+        "z": "d216577e3e3a3883",
+        "name": "Prepare MQTT publish",
+        "func": "// Publish full v2.0.0 status snapshot to pid/status\nmsg.topic = 'pid/status';\nmsg.payload = JSON.stringify(msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 520,
+        "wires": [
+            [
+                "b823bc8cb2eeb084"
+            ]
+        ]
+    },
+    {
+        "id": "b823bc8cb2eeb084",
+        "type": "mqtt out",
+        "z": "d216577e3e3a3883",
+        "name": "Publish: pid/status",
+        "topic": "pid/status",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "8101d945.ea6768",
+        "x": 1060,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "eb117bba353d71f7",
+        "type": "comment",
+        "z": "d216577e3e3a3883",
+        "name": "easy-pid-controller v2.0.0 — anti-windup, output clamp, deadband, bumpless transfer, runtime gains, reset",
+        "info": "Updated for simple-pid-controller v2.0.0.\n\nNew input topics (via MQTT or inject):\n  pid/gains        → { k_p, k_i, k_d } — runtime gain tuning\n  pid/mode         → 'auto' or 'manual' — bumpless transfer on manual→auto\n  pid/manual_output → number — manual output seed\n  reset            → any — clears integral, derivative, timestamp\n\nOutput payload now includes: error, output (raw clamped), mode\nInfluxDB: pid_status measurement stores all fields with mode as tag.",
+        "x": 500,
+        "y": 60,
         "wires": []
     },
     {
